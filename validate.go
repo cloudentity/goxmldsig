@@ -2,6 +2,7 @@ package dsig
 
 import (
 	"bytes"
+	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -226,13 +227,18 @@ func (ctx *ValidationContext) verifySignedInfo(sig *types.Signature, canonicaliz
 
 	hashed := hash.Sum(nil)
 
-	pubKey, ok := cert.PublicKey.(*rsa.PublicKey)
-	if !ok {
+	// Verify that the private key matching the public key from the cert was what was used to sign the 'SignedInfo' and produce the 'SignatureValue'
+	switch pubKey := cert.PublicKey.(type) {
+	case *rsa.PublicKey:
+		err = rsa.VerifyPKCS1v15(pubKey, signatureAlgorithm, hashed[:], decodedSignature)
+	case *ecdsa.PublicKey:
+		if !ecdsa.VerifyASN1(pubKey, hashed[:], decodedSignature) {
+			err = errors.New("ECDSA verification error")
+		}
+	default:
 		return errors.New("Invalid public key")
 	}
 
-	// Verify that the private key matching the public key from the cert was what was used to sign the 'SignedInfo' and produce the 'SignatureValue'
-	err = rsa.VerifyPKCS1v15(pubKey, signatureAlgorithm, hashed[:], decodedSignature)
 	if err != nil {
 		return err
 	}
