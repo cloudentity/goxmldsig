@@ -83,6 +83,7 @@ func TestSign(t *testing.T) {
 func TestSignErrors(t *testing.T) {
 	randomKeyStore := RandomKeyStoreForTest()
 	ctx := &SigningContext{
+		Alg:         RSASHA512SignatureMethod,
 		Hash:        crypto.SHA512_256,
 		KeyStore:    randomKeyStore,
 		IdAttribute: DefaultIdAttr,
@@ -103,6 +104,7 @@ func TestSignNonDefaultID(t *testing.T) {
 	// and confirm that the signature correctly references it.
 	ks := RandomKeyStoreForTest()
 	ctx := &SigningContext{
+		Alg:           RSASHA256SignatureMethod,
 		Hash:          crypto.SHA256,
 		KeyStore:      ks,
 		IdAttribute:   "OtherID",

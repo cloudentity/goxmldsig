@@ -42,6 +42,10 @@ const (
 	RSASHA1SignatureMethod   = "http://www.w3.org/2000/09/xmldsig#rsa-sha1"
 	RSASHA256SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha256"
 	RSASHA512SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#rsa-sha512"
+
+	ECDSASHA1SignatureMethod   = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha1"
+	ECDSASHA256SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256"
+	ECDSASHA512SignatureMethod = "http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha512"
 )
 
 //Well-known signature algorithms
@@ -63,19 +67,27 @@ var digestAlgorithmIdentifiers = map[crypto.Hash]string{
 }
 
 var digestAlgorithmsByIdentifier = map[string]crypto.Hash{}
-var signatureMethodsByIdentifier = map[string]crypto.Hash{}
 
 func init() {
 	for hash, id := range digestAlgorithmIdentifiers {
 		digestAlgorithmsByIdentifier[id] = hash
 	}
-	for hash, id := range signatureMethodIdentifiers {
-		signatureMethodsByIdentifier[id] = hash
-	}
 }
 
-var signatureMethodIdentifiers = map[crypto.Hash]string{
-	crypto.SHA1:   RSASHA1SignatureMethod,
-	crypto.SHA256: RSASHA256SignatureMethod,
-	crypto.SHA512: RSASHA512SignatureMethod,
+var signatureMethodIdentifiers = map[string]string{
+	"rsa-sha1":     RSASHA1SignatureMethod,
+	"rsa-sha256":   RSASHA256SignatureMethod,
+	"rsa-sha512":   RSASHA512SignatureMethod,
+	"ecdsa-sha1":   ECDSASHA1SignatureMethod,
+	"ecdsa-sha256": ECDSASHA256SignatureMethod,
+	"ecdsa-sha512": ECDSASHA512SignatureMethod,
+}
+
+var signatureMethodsByIdentifier = map[string]crypto.Hash{
+	RSASHA1SignatureMethod:     crypto.SHA1,
+	RSASHA256SignatureMethod:   crypto.SHA256,
+	RSASHA512SignatureMethod:   crypto.SHA512,
+	ECDSASHA1SignatureMethod:   crypto.SHA1,
+	ECDSASHA256SignatureMethod: crypto.SHA256,
+	ECDSASHA512SignatureMethod: crypto.SHA512,
 }
