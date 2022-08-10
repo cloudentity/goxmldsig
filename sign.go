@@ -14,6 +14,7 @@ import (
 )
 
 type SigningContext struct {
+	Alg           string
 	Hash          crypto.Hash
 	KeyStore      X509KeyStore
 	IdAttribute   string
@@ -23,6 +24,7 @@ type SigningContext struct {
 
 func NewDefaultSigningContext(ks X509KeyStore) *SigningContext {
 	return &SigningContext{
+		Alg:           RSASHA256SignatureMethod,
 		Hash:          crypto.SHA256,
 		KeyStore:      ks,
 		IdAttribute:   DefaultIdAttr,
@@ -38,6 +40,7 @@ func (ctx *SigningContext) SetSignatureMethod(algorithmID string) error {
 	}
 
 	ctx.Hash = hash
+	ctx.Alg = algorithmID
 
 	return nil
 }
@@ -63,11 +66,6 @@ func (ctx *SigningContext) constructSignedInfo(el *etree.Element, enveloped bool
 		return nil, errors.New("unsupported hash mechanism")
 	}
 
-	signatureMethodIdentifier := ctx.GetSignatureMethodIdentifier()
-	if signatureMethodIdentifier == "" {
-		return nil, errors.New("unsupported signature method")
-	}
-
 	digest, err := ctx.digest(el)
 	if err != nil {
 		return nil, err
@@ -84,7 +82,7 @@ func (ctx *SigningContext) constructSignedInfo(el *etree.Element, enveloped bool
 
 	// /SignedInfo/SignatureMethod
 	signatureMethod := ctx.createNamespacedElement(signedInfo, SignatureMethodTag)
-	signatureMethod.CreateAttr(AlgorithmAttr, signatureMethodIdentifier)
+	signatureMethod.CreateAttr(AlgorithmAttr, ctx.Alg)
 
 	// /SignedInfo/Reference
 	reference := ctx.createNamespacedElement(signedInfo, ReferenceTag)
@@ -217,13 +215,6 @@ func (ctx *SigningContext) SignEnveloped(el *etree.Element) (*etree.Element, err
 	ret.Child = append(ret.Child, sig)
 
 	return ret, nil
-}
-
-func (ctx *SigningContext) GetSignatureMethodIdentifier() string {
-	if ident, ok := signatureMethodIdentifiers[ctx.Hash]; ok {
-		return ident
-	}
-	return ""
 }
 
 func (ctx *SigningContext) GetDigestAlgorithmIdentifier() string {
